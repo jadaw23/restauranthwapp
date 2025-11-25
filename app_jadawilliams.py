@@ -1,58 +1,3 @@
-# ============================================
-# Restaurant Dashboard - Streamlit Application Template
-# ITOM6265 - Database Homework
-#
-# INSTRUCTIONS:
-# 1. Update database credentials in Block 3
-# 2. Fill in all TODO sections
-# 3. Test each tab individually
-# 4. Read the hints and documentation links
-# ============================================
-
-# Block 1: Import required libraries (KEEP THIS AS-IS)
-import streamlit as st
-import pandas as pd
-import mysql.connector
-from mysql.connector import Error
-import folium
-from streamlit_folium import st_folium
-
-# Block 2: Page configuration (KEEP THIS AS-IS)
-st.set_page_config(
-    page_title="ITOM6265-HW1",
-    page_icon="🍽️",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# Block 3: Database connection (UPDATE CREDENTIALS ONLY)
-# ===== UPDATE THESE VALUES WITH YOUR DATABASE INFORMATION =====
-try:
-   connection = mysql.connector.connect(
-    host='db-mysql-itom-do-user-28250611-0.j.db.ondigitalocean.com',
-    port=25060,
-    user='restaurant_readonly',
-    password='SecurePassword123!',
-    database='restaurant'
-)
-db_connected = True
-    st.success("✅ Database connected successfully!")
-except Error as e:
-    st.error(f"❌ Error connecting to MySQL Database: {e}")
-    st.info("Please check your database credentials in the code (Block 3)")
-    db_connected = False
-    connection = None
-
-# Block 4: Sidebar navigation (KEEP THIS AS-IS)
-st.sidebar.title("🍽️ ITOM6265-HW1")
-st.sidebar.markdown("---")
-page = st.sidebar.radio(
-    "Navigation",
-    ["HW Summary", "Q1-DB Query", "Q2-Maps"],
-    help="Select a page to navigate"
-)
-st.sidebar.markdown("---")
-st.sidebar.info("Restaurant Database Dashboard")
 import streamlit as st
 import mysql.connector
 import pandas as pd
@@ -76,7 +21,7 @@ st.markdown("""
     .big-font {
         font-size:30px !important;
         font-weight: bold;
-        color: #FF6B5B;
+        color: #FF6B6B;
     }
     .metric-container {
         background-color: #f0f2f6;
@@ -91,11 +36,34 @@ st.markdown("""
 # BLOCK 3: DATABASE CONNECTION
 # ============================================================================
 @st.cache_resource
+def get_database_connection():
+    """Establish connection to MySQL database"""
+    try:
+        connection = mysql.connector.connect(
+            host='db-mysql-itom-do-user-28250611-0.j.db.ondigitalocean.com',
+            port=25060,
+            user='restaurant_readonly',
+            password='SecurePassword123!',
+            database='restaurant'
+        )
+        return connection
+    except mysql.connector.Error as err:
+        st.error(f"❌ Database connection failed: {err}")
+        return None
 
 # Test database connection
 conn = get_database_connection()
 if conn and conn.is_connected():
     st.sidebar.success("✅ Database connected successfully!")
+    # Test query to verify data
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM restaurants")
+        count = cursor.fetchone()[0]
+        st.sidebar.info(f"📊 Total restaurants in DB: {count}")
+        cursor.close()
+    except Exception as e:
+        st.sidebar.error(f"Query test failed: {e}")
 else:
     st.sidebar.error("❌ Database connection failed!")
 
@@ -105,41 +73,57 @@ else:
 def get_vote_range():
     """Get minimum and maximum vote counts from database"""
     if conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT MIN(votes) as min_votes, MAX(votes) as max_votes FROM restaurants")
-        result = cursor.fetchone()
-        cursor.close()
-        return result[0] if result[0] else 0, result[1] if result[1] else 1000
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT MIN(votes) as min_votes, MAX(votes) as max_votes FROM restaurants")
+            result = cursor.fetchone()
+            cursor.close()
+            if result and result[0] is not None and result[1] is not None:
+                return int(result[0]), int(result[1])
+            else:
+                st.warning("⚠️ No vote data found in database")
+                return 0, 1000
+        except Exception as e:
+            st.error(f"Error getting vote range: {e}")
+            return 0, 1000
     return 0, 1000
 
 def search_restaurants(name_pattern, min_votes, max_votes):
     """Search restaurants based on filters"""
     if conn:
-        cursor = conn.cursor()
-        query = """
-            SELECT name, votes, city 
-            FROM restaurants 
-            WHERE name LIKE %s 
-            AND votes BETWEEN %s AND %s 
-            ORDER BY votes DESC
-        """
-        cursor.execute(query, (f'%{name_pattern}%', min_votes, max_votes))
-        results = cursor.fetchall()
-        cursor.close()
-        return results
+        try:
+            cursor = conn.cursor()
+            query = """
+                SELECT name, votes, city 
+                FROM restaurants 
+                WHERE name LIKE %s 
+                AND votes BETWEEN %s AND %s 
+                ORDER BY votes DESC
+            """
+            cursor.execute(query, (f'%{name_pattern}%', min_votes, max_votes))
+            results = cursor.fetchall()
+            cursor.close()
+            return results
+        except Exception as e:
+            st.error(f"Database query error: {e}")
+            return []
     return []
 
 def get_restaurant_locations():
     """Get restaurant coordinates for map"""
     if conn:
-        query = """
-            SELECT name, latitude, longitude 
-            FROM restaurants 
-            WHERE latitude IS NOT NULL 
-            AND longitude IS NOT NULL
-        """
-        df = pd.read_sql(query, conn)
-        return df
+        try:
+            query = """
+                SELECT name, latitude, longitude 
+                FROM restaurants 
+                WHERE latitude IS NOT NULL 
+                AND longitude IS NOT NULL
+            """
+            df = pd.read_sql(query, conn)
+            return df
+        except Exception as e:
+            st.error(f"Error loading map data: {e}")
+            return pd.DataFrame()
     return pd.DataFrame()
 
 # ============================================================================
@@ -330,7 +314,6 @@ elif tab_selection == "🗺️ Interactive Map":
                 with col1:
                     st.metric("Total Restaurants on Map", len(location_df))
                 with col2:
-                    cities = location_df['name'].str.contains('London').sum() if 'city' not in location_df.columns else 0
                     st.info("💡 Click on any blue marker to see the restaurant name")
                 
             else:
