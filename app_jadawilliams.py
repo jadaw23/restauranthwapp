@@ -136,13 +136,19 @@ def get_restaurant_locations():
     """Get restaurant coordinates for map"""
     if conn:
         try:
+            cursor = conn.cursor()
             query = """
                 SELECT name, latitude, longitude 
                 FROM business_location 
                 WHERE latitude IS NOT NULL 
                 AND longitude IS NOT NULL
             """
-            df = pd.read_sql(query, conn)
+            cursor.execute(query)
+            results = cursor.fetchall()
+            cursor.close()
+            
+            # Convert to DataFrame manually
+            df = pd.DataFrame(results, columns=['name', 'latitude', 'longitude'])
             return df
         except Exception as e:
             st.error(f"Error loading map data: {e}")
