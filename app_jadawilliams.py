@@ -28,13 +28,13 @@ st.set_page_config(
 # Block 3: Database connection (UPDATE CREDENTIALS ONLY)
 # ===== UPDATE THESE VALUES WITH YOUR DATABASE INFORMATION =====
 try:
-    connection = mysql.connector.connect(
-        host='db-mysql-itom-do-user-28250611-0.j.db.ondigitalocean.com',  # TODO: Update with your host
-        port=25060,  # TODO: Update with your port (usually 3306 for local, 25060 for DigitalOcean)
-        user='restaurant_readonly',  # TODO: Update with your username
-        password='SecurePassword123!',  # TODO: Update with your password
-        database='restaurant'  # TODO: Update with your database name
-    )
+   connection = mysql.connector.connect(
+    host='db-mysql-itom-do-user-28250611-0.j.db.ondigitalocean.com',
+    port=25060,
+    user='restaurant_readonly',
+    password='SecurePassword123!',
+    database='restaurant'
+)
     db_connected = True
     st.success("✅ Database connected successfully!")
 except Error as e:
@@ -91,20 +91,6 @@ st.markdown("""
 # BLOCK 3: DATABASE CONNECTION
 # ============================================================================
 @st.cache_resource
-def get_database_connection():
-    """Establish connection to MySQL database"""
-    try:
-        connection = mysql.connector.connect(
-            host='db-mysql-itom-do-user-28250611-0.j.db.ondigitalocean.com',
-            port=25060,
-            user='restaurant_readonly',
-            password='SecurePassword123!',
-            database='restaurant'
-        )
-        return connection
-    except mysql.connector.Error as err:
-        st.error(f"❌ Database connection failed: {err}")
-        return None
 
 # Test database connection
 conn = get_database_connection()
@@ -178,8 +164,8 @@ if tab_selection == "📋 HW Summary":
         st.image("https://cdn-icons-png.flaticon.com/512/3081/3081559.png", width=150)
     
     with col2:
-        st.markdown("### 👤 Student Information")
-        st.write("**Name:** [Your Name Here]")
+        st.markdown("### 👤 MSBA STUDENT AT SMU")
+        st.write("**Name:** Jada Williams")
         st.write("**Course:** ITOM6265")
         st.write("**Assignment:** Restaurant Dashboard with Streamlit")
         st.write("**Date:** November 2024")
