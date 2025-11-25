@@ -156,7 +156,7 @@ if tab_selection == "📋 HW Summary":
     
     st.markdown("---")
     
-    st.markdown("### 🎨 Customizations Implemented")
+    st.markdown("### 🎨 C ustomizations Implemented")
     
     customizations = {
         "1. Custom CSS Styling": "Added custom fonts, colors, and styling for headers and metric containers",
