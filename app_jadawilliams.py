@@ -58,7 +58,6 @@ st.markdown("""
 # ============================================================================
 # BLOCK 3: DATABASE CONNECTION
 # ============================================================================
-@st.cache_resource
 def get_database_connection():
     """Establish connection to MySQL database"""
     try:
@@ -67,14 +66,15 @@ def get_database_connection():
             port=25060,
             user='restaurant_readonly',
             password='SecurePassword123!',
-            database='restaurant'
+            database='restaurant',
+            autocommit=True
         )
         return connection
     except mysql.connector.Error as err:
         st.error(f"❌ Database connection failed: {err}")
         return None
 
-# Test database connection
+# Get database connection
 conn = get_database_connection()
 if conn and conn.is_connected():
     st.sidebar.success("✅ Database connected successfully!")
@@ -244,7 +244,7 @@ elif tab_selection == "🔍 Database Search":
         )
     
     # Search button
-    search_button = st.button("🔍 Get results", type="primary", use_container_width=True)
+    search_button = st.button("🔍 Get results", type="primary")
     
     if search_button:
         with st.spinner("Searching database..."):
@@ -260,9 +260,7 @@ elif tab_selection == "🔍 Database Search":
                 # Display as styled table
                 st.dataframe(
                     df,
-                    use_container_width=True,
-                    height=400,
-                    hide_index=True
+                    height=400
                 )
                 
                 # Additional statistics
@@ -301,9 +299,7 @@ elif tab_selection == "🗺️ Interactive Map":
     # Display button
     map_button = st.button(
         "🗺️ Display map!",
-        type="primary",
-        use_container_width=True,
-        help="Map of restaurants in London. Click on teardrop to check names."
+        type="primary"
     )
     
     st.caption("Map of restaurants in London. Click on teardrop to check names.")
