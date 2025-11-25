@@ -35,7 +35,7 @@ try:
     password='SecurePassword123!',
     database='restaurant'
 )
-    db_connected = True
+db_connected = True
     st.success("✅ Database connected successfully!")
 except Error as e:
     st.error(f"❌ Error connecting to MySQL Database: {e}")
