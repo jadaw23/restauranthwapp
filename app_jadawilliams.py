@@ -14,20 +14,43 @@ st.set_page_config(
 )
 
 # ============================================================================
-# BLOCK 2: CUSTOM STYLING (CUSTOMIZATION #1)
+# BLOCK 2: CUSTOM STYLING (CUSTOMIZATION #1) - PINK & GREEN THEME
 # ============================================================================
 st.markdown("""
     <style>
     .big-font {
         font-size:30px !important;
         font-weight: bold;
-        color: #FF6B6B;
+        color: #FF1493;
     }
     .metric-container {
-        background-color: #f0f2f6;
+        background: linear-gradient(135deg, #FFB6D9 0%, #B4F8C8 100%);
         padding: 20px;
         border-radius: 10px;
         margin: 10px 0;
+    }
+    /* Pink and Green themed buttons and elements */
+    .stButton>button {
+        background-color: #FF1493 !important;
+        color: white !important;
+        border: 2px solid #32CD32 !important;
+    }
+    .stButton>button:hover {
+        background-color: #32CD32 !important;
+        border: 2px solid #FF1493 !important;
+    }
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #FFE5F0 0%, #E5FFE5 100%);
+    }
+    /* Headers with pink/green */
+    h1, h2, h3 {
+        color: #FF1493 !important;
+    }
+    /* Success messages in green */
+    .stSuccess {
+        background-color: #B4F8C8 !important;
+        color: #006400 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -55,12 +78,20 @@ def get_database_connection():
 conn = get_database_connection()
 if conn and conn.is_connected():
     st.sidebar.success("✅ Database connected successfully!")
-    # Test query to verify data
+    # Test query to verify data and find table names
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM restaurants")
-        count = cursor.fetchone()[0]
-        st.sidebar.info(f"📊 Total restaurants in DB: {count}")
+        # First, let's see what tables exist
+        cursor.execute("SHOW TABLES")
+        tables = cursor.fetchall()
+        st.sidebar.info(f"📋 Available tables: {[t[0] for t in tables]}")
+        
+        # Try to get count from the first table
+        if tables:
+            table_name = tables[0][0]
+            cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+            count = cursor.fetchone()[0]
+            st.sidebar.info(f"📊 Total records in '{table_name}': {count}")
         cursor.close()
     except Exception as e:
         st.sidebar.error(f"Query test failed: {e}")
@@ -75,7 +106,7 @@ def get_vote_range():
     if conn:
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT MIN(votes) as min_votes, MAX(votes) as max_votes FROM restaurants")
+            cursor.execute("SELECT MIN(votes) as min_votes, MAX(votes) as max_votes FROM restaurant")
             result = cursor.fetchone()
             cursor.close()
             if result and result[0] is not None and result[1] is not None:
@@ -156,14 +187,14 @@ if tab_selection == "📋 HW Summary":
     
     st.markdown("---")
     
-    st.markdown("### 🎨 C ustomizations Implemented")
+    st.markdown("### 🎨 Customizations Implemented")
     
     customizations = {
-        "1. Custom CSS Styling": "Added custom fonts, colors, and styling for headers and metric containers",
+        "1. Custom CSS Styling - Pink & Green Theme": "Added custom pink and green gradient colors for headers, buttons, sidebar, and metric containers",
         "2. Two-Column Layout": "Used Streamlit columns for better visual organization in Summary tab",
         "3. Custom Map Tiles": "Implemented CartoDB Positron tiles for the interactive map (instead of default OpenStreetMap)",
-        "4. Enhanced Data Display": "Color-coded result counts and styled tables with custom formatting",
-        "5. Interactive Widgets": "Added emoji icons and captions for better user experience"
+        "4. Enhanced Data Display": "Color-coded result counts and styled tables with custom pink/green formatting",
+        "5. Interactive Widgets": "Added emoji icons and captions for better user experience with pink/green hover effects"
     }
     
     for title, description in customizations.items():
@@ -219,7 +250,7 @@ elif tab_selection == "🔍 Database Search":
     
     if search_button:
         with st.spinner("Searching database..."):
-            results = search_restaurant(name_input, vote_range[0], vote_range[1])
+            results = search_restaurants(name_input, vote_range[0], vote_range[1])
             
             if results:
                 # CUSTOMIZATION: Enhanced data display with color-coded count (CUSTOMIZATION #3)
@@ -297,13 +328,13 @@ elif tab_selection == "🗺️ Interactive Map":
                     tiles='CartoDB positron'
                 )
                 
-                # Add markers for each restaurant
+                # Add markers for each restaurant with pink/green theme
                 for idx, row in location_df.iterrows():
                     folium.Marker(
                         location=[row['latitude'], row['longitude']],
                         popup=folium.Popup(row['name'], max_width=300),
                         tooltip=row['name'],
-                        icon=folium.Icon(color='blue', icon='cutlery', prefix='fa')
+                        icon=folium.Icon(color='pink', icon='cutlery', prefix='fa')
                     ).add_to(m)
                 
                 # Display map
@@ -314,7 +345,7 @@ elif tab_selection == "🗺️ Interactive Map":
                 with col1:
                     st.metric("Total Restaurants on Map", len(location_df))
                 with col2:
-                    st.info("💡 Click on any blue marker to see the restaurant name")
+                    st.info("💡 Click on any pink marker to see the restaurant name")
                 
             else:
                 st.error("❌ No location data available")
@@ -324,7 +355,7 @@ elif tab_selection == "🗺️ Interactive Map":
         st.markdown("""
         **Map Features:**
         - 🗺️ Custom CartoDB Positron tiles for clean visualization
-        - 📍 Blue markers indicate restaurant locations
+        - 📍 Pink markers indicate restaurant locations
         - 🖱️ Click markers to see restaurant names
         - 🔍 Zoom in/out using the +/- buttons
         - 🌍 Pan around the map by clicking and dragging
