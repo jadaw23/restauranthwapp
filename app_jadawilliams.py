@@ -95,7 +95,7 @@ def search_restaurants(name_pattern, min_votes, max_votes):
             cursor = conn.cursor()
             query = """
                 SELECT name, votes, city 
-                FROM restaurants 
+                FROM restaurant 
                 WHERE name LIKE %s 
                 AND votes BETWEEN %s AND %s 
                 ORDER BY votes DESC
@@ -115,7 +115,7 @@ def get_restaurant_locations():
         try:
             query = """
                 SELECT name, latitude, longitude 
-                FROM restaurants 
+                FROM restaurant 
                 WHERE latitude IS NOT NULL 
                 AND longitude IS NOT NULL
             """
@@ -219,7 +219,7 @@ elif tab_selection == "🔍 Database Search":
     
     if search_button:
         with st.spinner("Searching database..."):
-            results = search_restaurants(name_input, vote_range[0], vote_range[1])
+            results = search_restaurant(name_input, vote_range[0], vote_range[1])
             
             if results:
                 # CUSTOMIZATION: Enhanced data display with color-coded count (CUSTOMIZATION #3)
