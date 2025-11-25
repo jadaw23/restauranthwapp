@@ -78,20 +78,12 @@ def get_database_connection():
 conn = get_database_connection()
 if conn and conn.is_connected():
     st.sidebar.success("✅ Database connected successfully!")
-    # Test query to verify data and find table names
+    # Test query to verify data
     try:
         cursor = conn.cursor()
-        # First, let's see what tables exist
-        cursor.execute("SHOW TABLES")
-        tables = cursor.fetchall()
-        st.sidebar.info(f"📋 Available tables: {[t[0] for t in tables]}")
-        
-        # Try to get count from the first table
-        if tables:
-            table_name = tables[0][0]
-            cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
-            count = cursor.fetchone()[0]
-            st.sidebar.info(f"📊 Total records in '{table_name}': {count}")
+        cursor.execute("SELECT COUNT(*) FROM business_location")
+        count = cursor.fetchone()[0]
+        st.sidebar.info(f"📊 Total restaurants in DB: {count}")
         cursor.close()
     except Exception as e:
         st.sidebar.error(f"Query test failed: {e}")
@@ -106,7 +98,7 @@ def get_vote_range():
     if conn:
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT MIN(votes) as min_votes, MAX(votes) as max_votes FROM restaurant")
+            cursor.execute("SELECT MIN(votes) as min_votes, MAX(votes) as max_votes FROM business_location")
             result = cursor.fetchone()
             cursor.close()
             if result and result[0] is not None and result[1] is not None:
@@ -126,7 +118,7 @@ def search_restaurants(name_pattern, min_votes, max_votes):
             cursor = conn.cursor()
             query = """
                 SELECT name, votes, city 
-                FROM restaurant 
+                FROM business_location 
                 WHERE name LIKE %s 
                 AND votes BETWEEN %s AND %s 
                 ORDER BY votes DESC
@@ -146,7 +138,7 @@ def get_restaurant_locations():
         try:
             query = """
                 SELECT name, latitude, longitude 
-                FROM restaurant 
+                FROM business_location 
                 WHERE latitude IS NOT NULL 
                 AND longitude IS NOT NULL
             """
